@@ -1,0 +1,6 @@
+# Compiled executables
+a.out
+printRange
+
+# Object files
+*.o
