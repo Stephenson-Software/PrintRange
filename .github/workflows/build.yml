@@ -1,0 +1,48 @@
+name: build
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  build-and-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Compile with warnings enabled
+        run: g++ -std=c++17 -Wall -Wextra -o printRange printRange.cpp
+
+      # The program prompts on stdout and reads two integers from stdin, so every
+      # invocation pipes its input and every expected block starts with both prompts.
+      # Inputs are fed with `printf '%s\n' <a> <b>` so a negative endpoint is not
+      # mistaken for a command-line option.
+      - name: Check the output of each branch
+        run: |
+          check() {
+            name="$1"; first="$2"; last="$3"; shift 3
+            printf '%s\n' \
+              'What is the first number in the range?' \
+              'What is the last number in the range?' \
+              "$@" > "$RUNNER_TEMP/expected.txt"
+            printf '%s\n' "$first" "$last" | ./printRange > "$RUNNER_TEMP/actual.txt"
+            if diff -u "$RUNNER_TEMP/expected.txt" "$RUNNER_TEMP/actual.txt"; then
+              echo "PASS: $name"
+            else
+              echo "FAIL: $name"
+              exit 1
+            fi
+          }
+          check 'ascending' 1 5 1 2 3 4 5
+          check 'descending' 5 1 5 4 3 2 1
+          check 'equal endpoints' 3 3 3
+          check 'crossing zero' -2 2 -2 -1 0 1 2
+
+      # A wide range is checked by line count rather than by a literal block. The two
+      # prompt lines are dropped first, so 1 through 100 inclusive must leave 100 lines.
+      - name: Check that both endpoints are printed over a wide range
+        run: |
+          lines=$(printf '%s\n' 1 100 | ./printRange | tail -n +3 | wc -l)
+          echo "range lines: $lines"
+          test "$lines" -eq 100
