@@ -9,7 +9,7 @@ jobs:
   build-and-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Compile with warnings enabled
         run: g++ -std=c++17 -Wall -Wextra -o printRange printRange.cpp
@@ -25,9 +25,9 @@ jobs:
             printf '%s\n' \
               'What is the first number in the range?' \
               'What is the last number in the range?' \
-              "$@" > expected.txt
-            printf '%s\n' "$first" "$last" | ./printRange > actual.txt
-            if diff -u expected.txt actual.txt; then
+              "$@" > "$RUNNER_TEMP/expected.txt"
+            printf '%s\n' "$first" "$last" | ./printRange > "$RUNNER_TEMP/actual.txt"
+            if diff -u "$RUNNER_TEMP/expected.txt" "$RUNNER_TEMP/actual.txt"; then
               echo "PASS: $name"
             else
               echo "FAIL: $name"
