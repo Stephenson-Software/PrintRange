@@ -11,8 +11,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Compile with warnings enabled
-        run: g++ -std=c++17 -Wall -Wextra -o printRange printRange.cpp
+      # The Makefile is the single record of the build command, the C++ standard, and the
+      # artifact name, so the workflow builds through it rather than repeating the command.
+      - name: Build with make
+        run: make
 
       # The program prompts on stdout and reads two integers from stdin, so every
       # invocation pipes its input and every expected block starts with both prompts.
@@ -46,3 +48,10 @@ jobs:
           lines=$(printf '%s\n' 1 100 | ./printRange | tail -n +3 | wc -l)
           echo "range lines: $lines"
           test "$lines" -eq 100
+
+      # The README states that `make clean` removes the binary, so that target is run too
+      # rather than left as an unexercised claim.
+      - name: Check that make clean removes the binary
+        run: |
+          make clean
+          test ! -e printRange
