@@ -48,3 +48,10 @@ jobs:
           lines=$(printf '%s\n' 1 100 | ./printRange | tail -n +3 | wc -l)
           echo "range lines: $lines"
           test "$lines" -eq 100
+
+      # The README states that `make clean` removes the binary, so that target is run too
+      # rather than left as an unexercised claim.
+      - name: Check that make clean removes the binary
+        run: |
+          make clean
+          test ! -e printRange

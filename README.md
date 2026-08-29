@@ -40,7 +40,7 @@ printf '%s\n' 1 5 | ./printRange
 The `printf '%s\n' <first> <last>` form is used rather than `printf '<first>\n<last>\n'` because
 a negative endpoint written the second way is parsed by `printf` as an option.
 
-The input is not validated — no diagnostic is produced for anything that is not an integer.
+The source contains no input validation.
 
 ## Example
 
