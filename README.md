@@ -105,7 +105,8 @@ $ printf '%s\n' 1 100 | ./printRange | tail -n +3 | wc -l
 
 The `build` workflow in `.github/workflows/build.yml` builds the program with `make` on every
 push to `master` and on every pull request, then checks the output of each branch above against
-a literal expected block, plus the line count of the 1-through-100 range.
+a literal expected block, the line count of the 1-through-100 range, and that `make clean`
+removes the binary.
 
 ## License
 
