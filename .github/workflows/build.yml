@@ -19,7 +19,9 @@ jobs:
       # The program prompts on stdout and reads two integers from stdin, so every
       # invocation pipes its input and every expected block starts with both prompts.
       # Inputs are fed with `printf '%s\n' <a> <b>` so a negative endpoint is not
-      # mistaken for a command-line option.
+      # mistaken for a command-line option. The run is bounded by `timeout` and `head`
+      # so that a loop which steps past its endpoint fails the diff instead of filling
+      # the log.
       - name: Check the output of each branch
         run: |
           check() {
@@ -28,7 +30,7 @@ jobs:
               'What is the first number in the range?' \
               'What is the last number in the range?' \
               "$@" > "$RUNNER_TEMP/expected.txt"
-            printf '%s\n' "$first" "$last" | ./printRange > "$RUNNER_TEMP/actual.txt"
+            printf '%s\n' "$first" "$last" | timeout 5 ./printRange | head -n 100 > "$RUNNER_TEMP/actual.txt"
             if diff -u "$RUNNER_TEMP/expected.txt" "$RUNNER_TEMP/actual.txt"; then
               echo "PASS: $name"
             else
@@ -40,6 +42,34 @@ jobs:
           check 'descending' 5 1 5 4 3 2 1
           check 'equal endpoints' 3 3 3
           check 'crossing zero' -2 2 -2 -1 0 1 2
+          check 'ascending to INT_MAX' 2147483645 2147483647 2147483645 2147483646 2147483647
+          check 'descending to INT_MIN' -2147483646 -2147483648 -2147483646 -2147483647 -2147483648
+          check 'equal endpoints at INT_MAX' 2147483647 2147483647 2147483647
+
+      # Input that cannot be read as an int is rejected: the program exits with status 1,
+      # names the offending number on stderr, and prints no range on stdout.
+      - name: Check that unreadable input is rejected
+        run: |
+          reject() {
+            name="$1"; message="$2"; shift 2
+            status=0
+            printf '%s\n' "$@" | timeout 5 ./printRange > "$RUNNER_TEMP/actual.txt" 2> "$RUNNER_TEMP/error.txt" || status=$?
+            if test "$status" -eq 1 \
+              && grep -qxF "$message" "$RUNNER_TEMP/error.txt" \
+              && ! grep -qE '^-?[0-9]+$' "$RUNNER_TEMP/actual.txt"; then
+              echo "PASS: $name"
+            else
+              echo "FAIL: $name (exit $status)"
+              cat "$RUNNER_TEMP/error.txt"
+              head -n 5 "$RUNNER_TEMP/actual.txt"
+              exit 1
+            fi
+          }
+          reject 'non-numeric first number' 'The first number could not be read as an integer.' foo bar
+          reject 'non-numeric last number' 'The last number could not be read as an integer.' 3 xyz
+          reject 'first number outside int' 'The first number could not be read as an integer.' 99999999999 1
+          reject 'last number outside int' 'The last number could not be read as an integer.' 1 99999999999
+          reject 'blank input' 'The first number could not be read as an integer.' ''
 
       # A wide range is checked by line count rather than by a literal block. The two
       # prompt lines are dropped first, so 1 through 100 inclusive must leave 100 lines.
