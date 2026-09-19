@@ -40,7 +40,10 @@ printf '%s\n' 1 5 | ./printRange
 The `printf '%s\n' <first> <last>` form is used rather than `printf '<first>\n<last>\n'` because
 a negative endpoint written the second way is parsed by `printf` as an option.
 
-The source contains no input validation.
+Each number must be readable as an `int`. If either is not — a word, a value outside the range
+of `int`, or no input at all — a message naming that number is printed to standard error, no
+range is printed, and the program exits with status 1. Either endpoint may be the largest or
+smallest value of `int`; the range still ends on it.
 
 ## Example
 
@@ -92,6 +95,17 @@ What is the last number in the range?
 2
 ```
 
+Unreadable input:
+
+```
+$ printf '%s\n' 3 xyz | ./printRange
+What is the first number in the range?
+What is the last number in the range?
+The last number could not be read as an integer.
+$ echo $?
+1
+```
+
 Both prompts are printed on standard output ahead of the range, so the first two lines of every
 session are prompts. A wide range is therefore counted with the prompts dropped — 1 through 100
 inclusive leaves 100 lines:
@@ -105,8 +119,9 @@ $ printf '%s\n' 1 100 | ./printRange | tail -n +3 | wc -l
 
 The `build` workflow in `.github/workflows/build.yml` builds the program with `make` on every
 push to `master` and on every pull request, then checks the output of each branch above against
-a literal expected block, the line count of the 1-through-100 range, and that `make clean`
-removes the binary.
+a literal expected block (including ranges that end on the largest and smallest `int`), that
+unreadable input is rejected with status 1 and the expected message, the line count of the
+1-through-100 range, and that `make clean` removes the binary.
 
 ## License
 
