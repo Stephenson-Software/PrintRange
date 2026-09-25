@@ -42,9 +42,9 @@ a negative endpoint written the second way is parsed by `printf` as an option.
 
 Each number must be readable as an `int`. If either is not — a word, a number with other
 characters attached such as `5abc` or `1.5`, a value outside the range of `int`, or no input at
-all — a message naming that number is printed to standard error, no
-range is printed, and the program exits with status 1. Either endpoint may be the largest or
-smallest value of `int`; the range still ends on it.
+all — a message naming that number is printed to standard error, no range is printed, and the
+program exits with status 1. Either endpoint may be the largest or smallest value of `int`; the
+range still ends on it.
 
 ## Example
 
