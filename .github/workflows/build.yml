@@ -69,6 +69,9 @@ jobs:
           reject 'non-numeric last number' 'The last number could not be read as an integer.' 3 xyz
           reject 'first number outside int' 'The first number could not be read as an integer.' 99999999999 1
           reject 'last number outside int' 'The last number could not be read as an integer.' 1 99999999999
+          reject 'characters attached to the first number' 'The first number could not be read as an integer.' 5abc 7
+          reject 'decimal first number' 'The first number could not be read as an integer.' 1.5 3
+          reject 'characters attached to the last number' 'The last number could not be read as an integer.' 7 9x
           reject 'blank input' 'The first number could not be read as an integer.' ''
 
       # A wide range is checked by line count rather than by a literal block. The two
